@@ -62,5 +62,39 @@ def rsa_decrypt():
 
     return jsonify({'decrypted_message': decrypted_message})
 
+@app.route('/api/rsa/sign', methods=['POST'])
+def rsa_sign():
+    data = request.json
+    message = data['message']
+    
+    private_key, _ = rsa_cipher.load_keys()
+    if not private_key:
+        return jsonify({'error': 'Private key not found'}), 500
+
+    signature = rsa_cipher.sign(message, private_key)
+    if signature is None:
+        return jsonify({'error': 'Signing failed'}), 500
+        
+    signature_hex = signature.hex()
+    return jsonify({'signature': signature_hex})
+
+@app.route('/api/rsa/verify', methods=['POST'])
+def rsa_verify():
+    data = request.json
+    message = data['message']
+    signature_hex = data['signature']
+    
+    _, public_key = rsa_cipher.load_keys()
+    if not public_key:
+        return jsonify({'error': 'Public key not found'}), 500
+
+    try:
+        signature = bytes.fromhex(signature_hex)
+    except ValueError:
+        return jsonify({'error': 'Invalid signature hex string'}), 400
+
+    is_verified = rsa_cipher.verify(message, signature, public_key)
+    return jsonify({'is_verified': is_verified})
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
