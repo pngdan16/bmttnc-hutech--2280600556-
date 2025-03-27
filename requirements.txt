@@ -6,3 +6,5 @@ ecdsa
 pycryptodome
 cryptography
 tornado
+Pillow 
+cryptography
